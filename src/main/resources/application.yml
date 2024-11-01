@@ -1,0 +1,66 @@
+spring:
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+#          issuer-uri: http://localhost:8180/realms/dpop-poc
+          jwk-set-uri: http://localhost:8180/realms/dpop-poc/protocol/openid-connect/certs
+  cloud:
+    gateway:
+#      globalcors:
+#        corsConfigurations:
+#          '[/**]':
+#            allowedOrigins: "http://localhost:3000,http://localhost:8080,http://localhost:8180"
+#            allowedMethods:
+#              - GET
+#              - POST
+#              - OPTION
+#            allowedHeaders: "*"
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedHeaders: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - OPTIONS
+            allowCredentials: true
+            allowedOrigins: 'http://localhost:3000'
+
+      routes:
+            - id: text-service
+              uri: http://localhost:8080
+              predicates:
+                - Path=/api/**
+              filters:
+                - RewritePath=/api/(?<segment>.*), /${segment}
+
+
+server:
+  port: 8080
+
+application:
+  auth:
+    issuer-uri: http://localhost:8180/realms/dpop-poc
+    client:
+      client-id: dpop-client
+      client-secret: cUyNf5VOH06pIuafLlN06wbswbzZ7FUq # ${CLIENT_SECRET} # Replace with your actual client secret
+logging:
+  level:
+    org.springframework.security.oauth2: trace
+    org.springframework.web.cors: TRACE
+    org.springframework.security.web.FilterChainProxy: TRACE
+    org.springframework.web: DEBUG
+    org.springframework.security: TRACE
+
+management:
+  endpoint:
+    gateway:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: '*'
